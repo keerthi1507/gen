@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Notes</title>
+  <style>
+    body {
+      font-family: monospace;
+      background-color: #f9f9f9;
+      color: #111;
+      margin: 10px;
+      font-size: 11px;
+    }
+    h1 {
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .program {
+      margin-bottom: 12px;
+      padding: 4px;
+    }
+    .program h3 {
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+    button {
+      background-color: #eee;
+      border: 1px solid #ccc;
+      color: #111;
+      font-size: 10px;
+      padding: 2px 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ddd;
+    }
+    .hidden-code {
+      display: none;
+      white-space: pre;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Programs</h1>
+
+<div class="program">
+  <h3>1. Program 1</h3>
+  <div id="code1" class="hidden-code">
+
+!pip install gensim numpy
+
+
+import gensim.downloader as api
+import numpy as np
+
+
+print("Loading Word2Vec model...")
+model = api.load("word2vec-google-news-300")
+
+
+def word_math(w1, w2, w3):
+    try:
+        result_vector = model[w1] - model[w2] + model[w3]
+        similar_words = model.similar_by_vector(result_vector, topn=10)
+        print(f"\n{w1} - {w2} + {w3} = ?\nTop similar words:")
+        for word, score in similar_words:
+            if word not in {w1, w2, w3}:
+                print(f"{word}: {score:.4f}")
+    except KeyError as e:
+        print(f"'{e.args[0]}' not found in vocabulary.")
+
+
+word_math("king", "man", "woman")
+word_math("paris", "france", "germany")
+word_math("apple", "fruit", "carrot")
+
+
+def word_similarity(w1, w2):
+    try:
+        score = model.similarity(w1, w2)
+        print(f"\nSimilarity between '{w1}' and '{w2}': {score:.4f}")
+    except KeyError as e:
+        print(f"'{e.args[0]}' not found in vocabulary.")
+
+
+word_similarity("cat", "dog")
+word_similarity("computer", "keyboard")
+word_similarity("music", "art")
+
+
+def similar_words(word):
+    try:
+        print(f"\nWords similar to '{word}':")
+        for w, score in model.most_similar(word, topn=5):
+            print(f"{w}: {score:.4f}")
+    except KeyError as e:
+        print(f"'{e.args[0]}' not found in vocabulary.")
+
+
+similar_words("happy")
+similar_words("sad")
+similar_words("technology")</div>
+  <button onclick="copyCode('code1')">Copy</button>
+</div>
+
+<div class="program">
+  <h3>2. Program 2</h3>
+  <div id="code2" class="hidden-code"># pip install gensim matplotlib scikit-learn
+
+import gensim.downloader as api
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+
+model = api.load("word2vec-google-news-300")
+
+words = ['computer', 'internet', 'software', 'hardware', 'keyboard',
+         'mouse', 'server', 'network', 'programming', 'database']
+
+vectors = [model[w] for w in words]
+reduced = PCA(n_components=2).fit_transform(vectors)
+
+print(f"Top 5 words similar to '{words[0]}':")
+for w, score in model.most_similar(words[0], topn=5):
+    print(f"{w}: {score:.4f}")
+
+plt.scatter(reduced[:, 0], reduced[:, 1])
+for i, w in enumerate(words):
+    plt.annotate(w, (reduced[i, 0], reduced[i, 1]))
+plt.title("PCA Visualization of Technology Word Embeddings")
+plt.xlabel("PC1")
+plt.ylabel("PC2")
+plt.grid(True)
+plt.show()</div>
+  <button onclick="copyCode('code2')">Copy</button>
+</div>
+
+<div class="program">
+  <h3>3. Program 3</h3>
+  <div id="code3" class="hidden-code">
+
+from gensim.models import Word2Vec
+import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
+import numpy as np
+
+
+corpus = [
+    "The patient was diagnosed with diabetes and hypertension.",
+    "MRI scans reveal abnormalities in the brain tissue.",
+    "The treatment involves antibiotics and regular monitoring.",
+    "Symptoms include fever, fatigue, and muscle pain.",
+    "The vaccine is effective against several viral infections.",
+    "Doctors recommend physical therapy for recovery.",
+    "The clinical trial results were published in the journal.",
+    "The surgeon performed a minimally invasive procedure.",
+    "The prescription includes pain relievers and anti-inflammatory drugs.",
+    "The diagnosis confirmed a rare genetic disorder."
+]
+
+
+sentences = [sentence.lower().split() for sentence in corpus]
+
+
+model = Word2Vec(
+    sentences,
+    vector_size=100,    
+    window=5,          
+    min_count=1,        
+    workers=4,         
+    epochs=50           
+)
+
+
+words = model.wv.index_to_key                       
+vectors = np.array([model.wv[word] for word in words])  
+
+
+tsne = TSNE(n_components=2, random_state=0, perplexity=5, n_iter=300)
+reduced_vectors = tsne.fit_transform(vectors)
+
+
+plt.figure(figsize=(10, 8))
+plt.scatter(reduced_vectors[:, 0], reduced_vectors[:, 1])
+
+
+for i, word in enumerate(words):
+    plt.text(reduced_vectors[i, 0]+0.02, reduced_vectors[i, 1]+0.02, word, fontsize=12)
+
+plt.title("Medical Word Embeddings")
+plt.grid(True)
+plt.show()
+
+
+def similar(word):
+    try:
+        print(f"\nWords similar to '{word}':")
+        for w, score in model.wv.most_similar(word):
+            print(f"  {w} ({score:.2f})")
+    except KeyError:
+        print(f"Word '{word}' not found in vocabulary!")
+
+
+similar("treatment")
+similar("vaccine")</div>
+  <button onclick="copyCode('code3')">Copy</button>
+</div>
+
+<div class="program">
+  <h3>4. Program 4</h3>
+  <div id="code4" class="hidden-code">!pip install gensim transformers nltk
+
+import gensim.downloader as api
+from transformers import pipeline
+import nltk
+nltk.download('punkt')
+
+
+word_vectors = api.load("glove-wiki-gigaword-100")
+generator = pipeline("text-generation", model="gpt2")
+
+
+def replace_keyword(text, keyword):
+    try:
+        rep = word_vectors.most_similar(keyword, topn=1)[0][0]
+        print(f"Replaced with: {rep}")
+        return text.replace(keyword, rep)
+    except:
+        return text
+
+
+def get_response(text):
+    return generator(text, max_length=100)[0]['generated_text']
+
+
+prompt = "Who is king."
+print("Original:", prompt)
+new_prompt = replace_keyword(prompt, "king")
+print("Enriched:", new_prompt)
+
+print("\nOriginal Response:\n", get_response(prompt))
+print("\nEnriched Response:\n", get_response(new_prompt))</div>
+  <button onclick="copyCode('code4')">Copy</button>
+</div>
+
+<div class="program">
+  <h3>5. Program 5</h3>
+  <div id="code5" class="hidden-code">import gensim.downloader as api
+import nltk
+import random
+
+
+nltk.download('punkt')
+
+
+print("Loading words...")
+word_vectors = api.load("glove-wiki-gigaword-100")
+print("Words loaded!")
+
+
+def get_similar_words(word):
+    try:
+        similar = word_vectors.most_similar(word, topn=5)
+        sim1 = similar[0][0]
+        sim2 = similar[1][0]
+        sim3 = similar[2][0]
+        sim4 = similar[3][0]
+        sim5 = similar[4][0]
+        return sim1, sim2, sim3, sim4, sim5
+    except:
+        print("Word not found.")
+        return None
+
+def create_paragraph(word):
+    result = get_similar_words(word)
+    if result is None:
+        return "Try with a different word."
+
+    w1, w2, w3, w4, w5 = result
+
+    sentence1 = f"The {word} was near {w1} and {w2}."
+    sentence2 = f"Many people link {word} with {w3} and {w4}."
+    sentence3 = f"In the place of {word}, {w5} was often seen."
+    sentence4 = f"A story about {word} always has {w2} and {w4}."
+
+    paragraph = sentence1 + " " + sentence2 + " " + sentence3 + " " + sentence4
+    return paragraph
+
+
+word = input("Enter a word: ")
+print("\nGenerated Paragraph:\n")
+print(create_paragraph(word))</div>
+  <button onclick="copyCode('code5')">Copy</button>
+</div>
+
+<div class="program">
+  <h3>6. Program 6</h3>
+  <div id="code6" class="hidden-code">!pip install transformers
+
+from transformers import pipeline
+
+print("Loading Sentiment Model...")
+analyzer = pipeline("sentiment-analysis")
+
+def check_sentiment(text):
+    res = analyzer(text)[0]
+    print(f"\nText: {text}\nSentiment: {res['label']} (Confidence: {res['score']:.2f})")
+
+reviews = [
+    "The product is amazing! I love it so much.",
+    "I'm very disappointed. The service was terrible.",
+    "It was an average experience, nothing special.",
+    "Absolutely fantastic quality! Highly recommended.",
+    "Not great, but not the worst either."
+]
+
+print("\nResults:")
+for r in reviews:
+    check_sentiment(r)</div>
+  <button onclick="copyCode('code6')">Copy</button>
+</div>
+
+<div class="program">
+  <h3>7. Program 7</h3>
+  <div id="code7" class="hidden-code">
+
+from transformers import pipeline
+
+
+summarizer = pipeline("summarization", model="t5-small")
+
+
+text = """
+The Industrial Revolution, which took place from the 18th to the 19th centuries, 
+was a period during which predominantly agrarian, rural societies in Europe and America 
+became industrial and urban. Prior to the Industrial Revolution, manufacturing was often 
+done in people's homes, using hand tools or basic machines. Industrialization marked a shift 
+to powered, special-purpose machinery, factories and mass production. The iron and textile 
+industries, along with the development of the steam engine, played central roles in the 
+Industrial Revolution, which also saw improved systems of transportation, communication and banking. 
+While industrialization brought about an increased volume and variety of manufactured goods and 
+an improved standard of living for some, it also resulted in often grim employment and living 
+conditions for the poor and working classes.
+"""
+
+
+summary = summarizer(text, max_length=60, min_length=30, do_sample=False)
+print(summary[0]['summary_text'])</div>
+  <button onclick="copyCode('code7')">Copy</button>
+</div>
+
+<div class="program">
+  <h3>8. Program 8</h3>
+  <div id="code8" class="hidden-code">!pip install langchain cohere langchain-community google-colab
+
+import cohere, getpass
+from langchain import PromptTemplate
+from langchain.llms import Cohere
+from google.colab import auth, drive
+
+auth.authenticate_user()
+drive.mount('/content/drive')
+
+try:
+    text = open("/content/drive/My Drive/Teaching.txt", "r", encoding="utf-8").read()
+    print("File loaded successfully!")
+except Exception as e:
+    print("Error loading file:", e)
+
+key = getpass.getpass("Enter your Cohere API Key: ")
+llm = Cohere(cohere_api_key=key, model="command")
+
+template = """
+You are an AI assistant helping to summarize and analyze a text document. Here is the document content:
+{text}
+Summary: -
+Provide a concise summary of the document.
+Key Takeaways: - List 3 important points from the text.
+Sentiment Analysis: - Determine if the sentiment of the document is Positive, Negative, or Neutral.
+"""
+
+prompt = PromptTemplate(input_variables=["text"], template=template)
+response = llm.predict(prompt.format(text=text))
+
+print("\n*Formatted Output*")
+print(response)</div>
+  <button onclick="copyCode('code8')">Copy</button>
+</div>
+
+<div class="program">
+  <h3>9. Program 9</h3>
+  <div id="code9" class="hidden-code">
+!pip install wikipedia-api pydantic
+
+from pydantic import BaseModel
+from typing import List, Optional
+import wikipediaapi
+
+
+class InstitutionDetails(BaseModel):
+    founder: Optional[str]
+    founded: Optional[str]
+    branches: Optional[List[str]]
+    number_of_employees: Optional[int]
+    summary: Optional[str]
+
+def fetch_details(name):
+    wiki = wikipediaapi.Wikipedia(user_agent="SimpleBot/1.0", language='en')
+    page = wiki.page(name)
+
+    if not page.exists():
+        raise ValueError("Page not found on Wikipedia.")
+
+    summary = page.summary[:500]
+    founder = None
+    founded = None
+    branches = []
+    employees = None
+
+    lines = page.text.split('\n')
+    for line in lines:
+        if 'Founder' in line:
+            founder = line.split(':')[-1].strip()
+        elif 'Founded' in line:
+            founded = line.split(':')[-1].strip()
+        elif 'Branches' in line:
+            branches = [b.strip() for b in line.split(':')[-1].split(',')]
+        elif 'Number of employees' in line:
+            try:
+                employees = int(line.split(':')[-1].replace(',', '').strip())
+            except:
+                employees = None
+
+    return InstitutionDetails(
+        founder=founder,
+        founded=founded,
+        branches=branches if branches else None,
+        number_of_employees=employees,
+        summary=summary
+    )
+
+
+name = input("Enter the institution name: ")
+
+
+try:
+    details = fetch_details(name)
+    print("\nInstitution Details:")
+    print("Founder:", details.founder or "N/A")
+    print("Founded:", details.founded or "N/A")
+    print("Branches:", ", ".join(details.branches) if details.branches else "N/A")
+    print("Number of Employees:", details.number_of_employees or "N/A")
+    print("Summary:", details.summary or "N/A")
+except Exception as e:
+    print(e)</div>
+  <button onclick="copyCode('code9')">Copy</button>
+</div>
+
+<div class="program">
+  <h3>10. Program 10</h3>
+  <div id="code10" class="hidden-code"># Install packages
+!pip install langchain cohere wikipedia-api
+
+
+from langchain.llms import Cohere
+import wikipediaapi
+import getpass
+
+
+key = getpass.getpass("Enter Cohere API Key: ")
+llm = Cohere(cohere_api_key=key, model="command")
+
+
+wiki = wikipediaapi.Wikipedia(user_agent="ipc-bot", language='en')
+ipc = wiki.page("Indian Penal Code").text[:2000]
+
+
+def ask_ipc(q):
+    prompt = f"Use this IPC info:\n{ipc}\n\nQuestion: {q}\nAnswer clearly. Mention section if any."
+    answer = llm.predict(prompt)
+    print("\nAnswer:\n", answer)
+
+
+while True:
+    q = input("Ask about IPC (or 'exit'): ")
+    if q == "exit":
+        break
+    ask_ipc(q)</div>
+  <button onclick="copyCode('code10')">Copy</button>
+</div>
+
+<script>
+  function copyCode(id) {
+    const code = document.getElementById(id).innerText;
+    navigator.clipboard.writeText(code).then(() => {
+      alert("Copied");
+    });
+  }
+</script>
+
+</body>
+</html>
